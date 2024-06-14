@@ -1,6 +1,64 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
+	import * as Drawer from '$lib/components/ui/drawer';
 	let timer = 2;
+
+	const timerTypes = {
+		0: {
+			type: 'pomodoro',
+			length: 25 * 60
+		},
+		1: {
+			type: 'shortBreak',
+			length: 5 * 60
+		},
+		2: {
+			type: 'longBreak',
+			length: 15 * 60
+		}
+	};
+
+	const toros = [
+		{
+			id: 1,
+			name: 'Working on Pomodoro',
+			isActive: false,
+			isFinished: false,
+			currentTimer: {
+				type: 0, // pomodoro, shortBreak, longBreak
+				remainingTime: 12 * 60 // in seconds
+			},
+			nextTimer: 'shortBreak',
+			numberOfPomodoros: 5,
+			finishedPomodoros: 2
+		},
+		{
+			id: 2,
+			name: 'Working on DnD Character Builder',
+			isActive: false,
+			isFinished: false,
+			currentTimer: {
+				type: 0,
+				remainingTime: 12 * 60
+			},
+			nextTimer: 'shortBreak',
+			numberOfPomodoros: 4,
+			finishedPomodoros: 2
+		},
+		{
+			id: 3,
+			name: 'Working on DnD Character Builder',
+			isActive: false,
+			isFinished: true,
+			currentTimer: {
+				type: 0,
+				remainingTime: 0
+			},
+			nextTimer: null,
+			numberOfPomodoros: 4,
+			finishedPomodoros: 4
+		}
+	];
 
 	const prettyTime = (time: number) => {
 		const minutes = Math.floor(time / 60);
@@ -30,7 +88,7 @@
 
 	const resetTimer = () => {
 		clearInterval(timerId);
-		timer = 15 * 60;
+		timer = 3;
 		timerIsDone = true;
 		prettifiedTime = prettyTime(timer);
 	};
@@ -43,9 +101,26 @@
 		<Button on:click={stopTimer} variant="secondary">Stop</Button>
 		<Button on:click={resetTimer} variant="destructive">Reset</Button>
 	</div>
-	{#if timerIsDone}
-		<div class="absolute bottom-0 left-x-full right-x-1/2 bg-white px-12 py-2">
-			<p class="text-2xl text-gray-950">Time's up! Good job!</p>
-		</div>
-	{/if}
+	<Drawer.Root>
+		<Drawer.Trigger
+			class="pt-2 px-5 pb-0 bg-gray-600 rounded-md rounded-b-none absolute bottom-0 left-x-full -translete-x-full"
+			>^^^</Drawer.Trigger
+		>
+		<Drawer.Content class="w-2/3 m-auto">
+			<Drawer.Header>
+				<Drawer.Title>Are you sure absolutely sure?</Drawer.Title>
+				<Drawer.Description>This action cannot be undone.</Drawer.Description>
+			</Drawer.Header>
+			<Drawer.Footer>
+				{#each toros as toro}
+					<div>
+						<input type="checkbox" name="toro-checkbox-{toro.id}" id="" bind:checked={toro.isFinished} />
+						<label class="text-base font-bold" for="toro-checkbox-{toro.id}">
+							{toro.isFinished}: {toro.name} [{toro.finishedPomodoros}/{toro.numberOfPomodoros}]
+						</label>
+					</div>
+				{/each}
+			</Drawer.Footer>
+		</Drawer.Content>
+	</Drawer.Root>
 </div>
