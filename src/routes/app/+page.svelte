@@ -17,12 +17,24 @@
 			length: 15 * 60
 		}
 	};
-
-	const toros = [
+	let currentToro = {
+		id: 1,
+		name: 'Working on Pomodoro',
+		isActive: true,
+		isFinished: false,
+		currentTimer: {
+			type: 0, // pomodoro, shortBreak, longBreak
+			remainingTime: 12 * 60 // in seconds
+		},
+		nextTimer: 'shortBreak',
+		numberOfPomodoros: 5,
+		finishedPomodoros: 2
+	};
+	let toros = [
 		{
 			id: 1,
 			name: 'Working on Pomodoro',
-			isActive: false,
+			isActive: true,
 			isFinished: false,
 			currentTimer: {
 				type: 0, // pomodoro, shortBreak, longBreak
@@ -92,6 +104,23 @@
 		timerIsDone = true;
 		prettifiedTime = prettyTime(timer);
 	};
+
+	const updateToro = (event: MouseEvent, id: number) => {
+		event.stopImmediatePropagation();
+		toros.forEach((toro) => {
+			if (toro.id === id) {
+				if (toro.isFinished) {
+					toro.isFinished = false;
+				} else {
+					toro.isFinished = true;
+				}
+			}
+			if (toro.isActive) {
+				currentToro = toro;
+			}
+		});
+		toros = toros;
+	};
 </script>
 
 <div class="h-screen w-screen flex flex-col items-center justify-center relative text-center">
@@ -103,24 +132,52 @@
 	</div>
 	<Drawer.Root>
 		<Drawer.Trigger
-			class="pt-2 px-5 pb-0 bg-gray-600 rounded-md rounded-b-none absolute bottom-0 left-x-full -translete-x-full"
-			>^^^</Drawer.Trigger
-		>
+			class="w-2/3 p-5 bg-background border rounded-md rounded-b-none absolute bottom-0 left-x-full -translete-x-full"
+			><div class="mx-auto h-2 w-[100px] rounded-full bg-muted"></div>
+			{#if currentToro.isFinished}
+				<div class="mt-4">
+					<Drawer.Title class="mb-1">
+						Pick thy Toro to work on!
+					</Drawer.Title>
+					<Drawer.Description>
+						You can choose one from the list. Click on drawer!
+					</Drawer.Description>
+				</div>
+			{:else}
+				<div class="mt-4">
+					<h2 class="text-xl">
+						{currentToro.name}
+						{#if currentToro.isFinished}✅{:else}🔳{/if}
+					</h2>
+					<p>
+						[{currentToro.finishedPomodoros}/{currentToro.numberOfPomodoros}]
+					</p>
+				</div>
+			{/if}
+		</Drawer.Trigger>
 		<Drawer.Content class="w-2/3 m-auto">
 			<Drawer.Header>
-				<Drawer.Title>Are you sure absolutely sure?</Drawer.Title>
-				<Drawer.Description>This action cannot be undone.</Drawer.Description>
+				<Drawer.Title>Toros</Drawer.Title>
+				<Drawer.Description>These are tasks that waits to be done :)</Drawer.Description>
 			</Drawer.Header>
-			<Drawer.Footer>
+			<Drawer.Header class="text-left">
 				{#each toros as toro}
 					<div>
-						<input type="checkbox" name="toro-checkbox-{toro.id}" id="" bind:checked={toro.isFinished} />
+						<input
+							type="checkbox"
+							name="toro-checkbox-{toro.id}"
+							id=""
+							on:change={(e) => {
+								updateToro(e, toro.id);
+							}}
+							bind:checked={toro.isFinished}
+						/>
 						<label class="text-base font-bold" for="toro-checkbox-{toro.id}">
 							{toro.isFinished}: {toro.name} [{toro.finishedPomodoros}/{toro.numberOfPomodoros}]
 						</label>
 					</div>
 				{/each}
-			</Drawer.Footer>
+			</Drawer.Header>
 		</Drawer.Content>
 	</Drawer.Root>
 </div>
