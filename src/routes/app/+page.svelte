@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Check, LapTimer, PieChart, Square } from '$lib/icons/';
 	import { Button } from '$lib/components/ui/button';
 	import * as Drawer from '$lib/components/ui/drawer';
 	let timer = 2;
@@ -27,8 +28,8 @@
 			remainingTime: 12 * 60 // in seconds
 		},
 		nextTimer: 'shortBreak',
-		numberOfPomodoros: 5,
-		finishedPomodoros: 2
+		numberOfPomodoros: 4,
+		finishedPomodoros: 0
 	};
 	let toros = [
 		{
@@ -121,19 +122,6 @@
 		});
 		toros = toros;
 	};
-	
-	const activateToro = (id: number) => {
-		toros.forEach((toro) => {
-			toro.isActive = false;
-			if (toro.id === id) {
-				toro.isActive = true;
-			}
-			if (toro.isActive) {
-				currentToro = toro;
-			}
-		});
-		toros = toros;
-	}
 </script>
 
 <div class="h-screen w-screen flex flex-col items-center justify-center relative text-center">
@@ -149,22 +137,35 @@
 			><div class="mx-auto h-2 w-[100px] rounded-full bg-muted"></div>
 			{#if !currentToro}
 				<div class="mt-4">
-					<Drawer.Title class="mb-1">
-						Pick thy Toro to work on!
-					</Drawer.Title>
+					<Drawer.Title class="mb-1">Pick thy Toro to work on!</Drawer.Title>
 					<Drawer.Description>
 						You can choose one from the list. Click on drawer!
 					</Drawer.Description>
 				</div>
 			{:else}
 				<div class="mt-4">
-					<h2 class="text-xl">
+					<h2 class="text-xl mb-1">
 						{currentToro.name}
-						{#if currentToro.isFinished}✅{:else}🔳{/if}
 					</h2>
-					<p>
-						[{currentToro.finishedPomodoros}/{currentToro.numberOfPomodoros}]
-					</p>
+					<div class="flex gap-1 justify-center">
+						{#each Array(currentToro.numberOfPomodoros) as _, i}
+							{#if i < currentToro.finishedPomodoros}
+								<div class="relative w-[15px] h-[15px]">
+									<Square class="bg-emerald-700 absolute top-0 left-0" />
+									<Check class="text-white absolute top-0 left-0" />
+								</div>
+							{:else if i == currentToro.finishedPomodoros}
+								<Square class="text-emerald-700" />
+								{#if (currentToro.finishedPomodoros + 1) % 4 === 0}
+									<LapTimer class="text-orange-600" />
+								{:else}
+									<PieChart class="text-orange-300" />
+								{/if}
+							{:else}
+								<Square />
+							{/if}
+						{/each}
+					</div>
 				</div>
 			{/if}
 		</Drawer.Trigger>
@@ -185,7 +186,7 @@
 							}}
 							bind:checked={toro.isFinished}
 						/>
-						<label class="text-base font-bold" for="toro-checkbox-{toro.id}" on:click={activateToro(toro.id)}>
+						<label class="text-base font-bold" for="toro-checkbox-{toro.id}">
 							{toro.isFinished}: {toro.name} [{toro.finishedPomodoros}/{toro.numberOfPomodoros}]
 						</label>
 					</div>
