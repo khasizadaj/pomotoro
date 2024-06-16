@@ -59,7 +59,7 @@
 		},
 		{
 			id: 3,
-			name: 'Working on DnD Character Builder',
+			name: 'Working on Something',
 			isActive: false,
 			isFinished: true,
 			currentTimer: {
@@ -121,6 +121,19 @@
 		});
 		toros = toros;
 	};
+	
+	const activateToro = (id: number) => {
+		toros.forEach((toro) => {
+			toro.isActive = false;
+			if (toro.id === id) {
+				toro.isActive = true;
+			}
+			if (toro.isActive) {
+				currentToro = toro;
+			}
+		});
+		toros = toros;
+	}
 </script>
 
 <div class="h-screen w-screen flex flex-col items-center justify-center relative text-center">
@@ -134,7 +147,7 @@
 		<Drawer.Trigger
 			class="w-2/3 p-5 bg-background border rounded-md rounded-b-none absolute bottom-0 left-x-full -translete-x-full"
 			><div class="mx-auto h-2 w-[100px] rounded-full bg-muted"></div>
-			{#if currentToro.isFinished}
+			{#if !currentToro}
 				<div class="mt-4">
 					<Drawer.Title class="mb-1">
 						Pick thy Toro to work on!
@@ -172,7 +185,7 @@
 							}}
 							bind:checked={toro.isFinished}
 						/>
-						<label class="text-base font-bold" for="toro-checkbox-{toro.id}">
+						<label class="text-base font-bold" for="toro-checkbox-{toro.id}" on:click={activateToro(toro.id)}>
 							{toro.isFinished}: {toro.name} [{toro.finishedPomodoros}/{toro.numberOfPomodoros}]
 						</label>
 					</div>
