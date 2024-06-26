@@ -83,6 +83,7 @@ class RunDetails {
             this.type = 0;
         }
         this.remainingTime = db.getTimerById(this.type)?.length || 25 * 60;
+        this.intervalId = null;
     }
 }
 
