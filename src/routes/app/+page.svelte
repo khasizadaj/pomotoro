@@ -39,7 +39,7 @@
 		currentToroDetails.intervalId = intervalId;
 		db.setRunDetails(currentToroDetails);
 	};
-	
+
 	const pauseTimer = () => {
 		let currentToroDetails = db.getRunDetails();
 		if (!currentToroDetails || currentToroDetails.intervalId == null) {
@@ -62,15 +62,15 @@
 	};
 </script>
 
-<div class="h-screen w-screen flex flex-col items-center justify-center relative text-center">
-	<h1 class="mb-6 text-3xl md:text-7xl font-semibold">{prettifiedTime}</h1>
+<div class="relative flex h-screen w-screen flex-col items-center justify-center text-center">
+	<h1 class="mb-6 text-3xl font-semibold md:text-7xl">{prettifiedTime}</h1>
 	<div class="flex gap-4">
 		<Button on:click={startTimer}>Start</Button>
 		<Button on:click={pauseTimer} variant="secondary">Pause</Button>
 	</div>
 	<Drawer.Root>
 		<Drawer.Trigger
-			class="w-2/3 p-5 bg-background border rounded-md rounded-b-none absolute bottom-0 left-x-full -translete-x-full"
+			class="left-x-full -translete-x-full absolute bottom-0 w-2/3 rounded-md rounded-b-none border bg-background p-5"
 			><div class="mx-auto h-2 w-[100px] rounded-full bg-muted"></div>
 			{#if !db.getRunDetails()}
 				<div class="mt-4">
@@ -81,15 +81,15 @@
 				</div>
 			{:else}
 				<div class="mt-4">
-					<h2 class="text-xl mb-1">
+					<h2 class="mb-1 text-xl">
 						{currentToro?.name}
 					</h2>
-					<div class="flex gap-1 justify-center">
+					<div class="flex justify-center gap-1">
 						{#each Array(currentToro?.numberOfPomodoros) as _, i}
 							{#if i < currentToro?.finishedPomodoros}
-								<div class="relative w-[15px] h-[15px]">
-									<Square class="bg-emerald-700 absolute top-0 left-0" />
-									<Check class="text-white absolute top-0 left-0" />
+								<div class="relative h-[15px] w-[15px]">
+									<Square class="absolute left-0 top-0 bg-emerald-700" />
+									<Check class="absolute left-0 top-0 text-white" />
 								</div>
 							{:else if i == currentToro?.finishedPomodoros}
 								<Square class="text-emerald-700" />
@@ -106,13 +106,13 @@
 				</div>
 			{/if}
 		</Drawer.Trigger>
-		<Drawer.Content class="w-2/3 m-auto">
+		<Drawer.Content class="m-auto w-2/3">
 			<Drawer.Header>
 				<Drawer.Title>Toros</Drawer.Title>
 				<Drawer.Description>These are tasks that waits to be done :)</Drawer.Description>
 			</Drawer.Header>
 			<Drawer.Header class="text-left">
-				<ul class="list-decimal ml-4">
+				<ul class="ml-4 list-decimal">
 					{#each toros as toro, id}
 						<li class="text-base font-bold">
 							{toro.isFinished}: {toro.name} [{toro.finishedPomodoros}/{toro.numberOfPomodoros}]
