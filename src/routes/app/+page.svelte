@@ -23,8 +23,6 @@
 		? prettyTime(db.getRunDetails()?.remainingTime)
 		: 'PO:MO:TO:RO';
 
-	let timerId: any;
-
 	const startTimer = () => {
 		let currentToroDetails = db.getRunDetails();
 		if (!currentToroDetails || currentToroDetails.intervalId !== null) {
