@@ -2,140 +2,77 @@
 	import { Check, LapTimer, PieChart, Square } from '$lib/icons/';
 	import { Button } from '$lib/components/ui/button';
 	import * as Drawer from '$lib/components/ui/drawer';
-	let timer = 2;
+	import { Database, RunDetails } from '$lib/db';
 
-	const timerTypes = {
-		0: {
-			type: 'pomodoro',
-			length: 25 * 60
-		},
-		1: {
-			type: 'shortBreak',
-			length: 5 * 60
-		},
-		2: {
-			type: 'longBreak',
-			length: 15 * 60
-		}
-	};
-	let currentToro = {
-		id: 1,
-		name: 'Working on Pomodoro',
-		isActive: true,
-		isFinished: false,
-		currentTimer: {
-			type: 0, // pomodoro, shortBreak, longBreak
-			remainingTime: 12 * 60 // in seconds
-		},
-		nextTimer: 'shortBreak',
-		numberOfPomodoros: 4,
-		finishedPomodoros: 0
-	};
-	let toros = [
-		{
-			id: 1,
-			name: 'Working on Pomodoro',
-			isActive: true,
-			isFinished: false,
-			currentTimer: {
-				type: 0, // pomodoro, shortBreak, longBreak
-				remainingTime: 12 * 60 // in seconds
-			},
-			nextTimer: 'shortBreak',
-			numberOfPomodoros: 5,
-			finishedPomodoros: 2
-		},
-		{
-			id: 2,
-			name: 'Working on DnD Character Builder',
-			isActive: false,
-			isFinished: false,
-			currentTimer: {
-				type: 0,
-				remainingTime: 12 * 60
-			},
-			nextTimer: 'shortBreak',
-			numberOfPomodoros: 4,
-			finishedPomodoros: 2
-		},
-		{
-			id: 3,
-			name: 'Working on Something',
-			isActive: false,
-			isFinished: true,
-			currentTimer: {
-				type: 0,
-				remainingTime: 0
-			},
-			nextTimer: null,
-			numberOfPomodoros: 4,
-			finishedPomodoros: 4
-		}
-	];
+	export let data: any;
+
+	const db: Database = data.db;
+	let toros = db.getToros();
+	let currentToro = db.getToroByCurrentTimer();
 
 	const prettyTime = (time: number) => {
+		if (time < 0) {
+			return 'PO:MO:TO:RO';
+		}
 		const minutes = Math.floor(time / 60);
-		const seconds = timer % 60;
+		const seconds = time % 60;
 		return `${minutes.toString().padStart(2, '0')}:${seconds < 10 ? `0${seconds}` : seconds}`;
 	};
 
-	$: prettifiedTime = prettyTime(timer);
-
-	let timerId: any;
-	$: timerIsDone = false;
+	$: prettifiedTime = db.getRunDetails()?.remainingTime
+		? prettyTime(db.getRunDetails()?.remainingTime)
+		: 'PO:MO:TO:RO';
 
 	const startTimer = () => {
-		timerIsDone = false;
-		timerId = setInterval(() => {
-			timer--;
-			if (timer === 0) {
+		let currentToroDetails = db.getRunDetails();
+		if (!currentToroDetails || currentToroDetails.intervalId !== null) {
+			return null;
+		}
+		let intervalId = setInterval(() => {
+			currentToroDetails.decrement();
+			if (currentToroDetails.isFinished()) {
 				resetTimer();
+				return;
 			}
-			prettifiedTime = prettyTime(timer);
+			prettifiedTime = prettyTime(currentToroDetails.remainingTime);
 		}, 1000);
+		currentToroDetails.intervalId = intervalId;
+		db.setRunDetails(currentToroDetails);
 	};
 
-	const stopTimer = () => {
-		clearInterval(timerId);
+	const pauseTimer = () => {
+		let currentToroDetails = db.getRunDetails();
+		if (!currentToroDetails || currentToroDetails.intervalId == null) {
+			return null;
+		}
+		clearInterval(currentToroDetails?.intervalId);
+		currentToroDetails.intervalId = null;
+		db.setRunDetails(currentToroDetails);
 	};
 
 	const resetTimer = () => {
-		clearInterval(timerId);
-		timer = 3;
-		timerIsDone = true;
-		prettifiedTime = prettyTime(timer);
-	};
+		let currentToroDetails = db.getRunDetails();
+		clearInterval(currentToroDetails?.intervalId);
+		currentToroDetails?.updateDetails(db);
+		db.setRunDetails(currentToroDetails);
 
-	const updateToro = (event: MouseEvent, id: number) => {
-		event.stopImmediatePropagation();
-		toros.forEach((toro) => {
-			if (toro.id === id) {
-				if (toro.isFinished) {
-					toro.isFinished = false;
-				} else {
-					toro.isFinished = true;
-				}
-			}
-			if (toro.isActive) {
-				currentToro = toro;
-			}
-		});
-		toros = toros;
+		prettifiedTime = prettyTime(currentToroDetails.remainingTime);
+		console.log(db.getRunDetails());
+		currentToro = db.getToroByCurrentTimer();
 	};
 </script>
 
-<div class="h-screen w-screen flex flex-col items-center justify-center relative text-center">
-	<h1 class="mb-6 text-3xl md:text-7xl font-semibold">{prettifiedTime}</h1>
+<div class="relative flex h-screen w-screen flex-col items-center justify-center text-center">
+	<h1 class="mb-6 text-3xl font-semibold md:text-7xl">{prettifiedTime}</h1>
 	<div class="flex gap-4">
 		<Button on:click={startTimer}>Start</Button>
-		<Button on:click={stopTimer} variant="secondary">Stop</Button>
-		<Button on:click={resetTimer} variant="destructive">Reset</Button>
+		<Button on:click={pauseTimer} variant="secondary">Pause</Button>
 	</div>
 	<Drawer.Root>
 		<Drawer.Trigger
-			class="w-2/3 p-5 bg-background border rounded-md rounded-b-none absolute bottom-0 left-x-full -translete-x-full"
+			class="left-x-full -translete-x-full absolute bottom-0 w-2/3 rounded-md rounded-b-none border bg-background p-5"
 			><div class="mx-auto h-2 w-[100px] rounded-full bg-muted"></div>
-			{#if !currentToro}
+			{#if !db.getRunDetails()}
 				<div class="mt-4">
 					<Drawer.Title class="mb-1">Pick thy Toro to work on!</Drawer.Title>
 					<Drawer.Description>
@@ -144,19 +81,19 @@
 				</div>
 			{:else}
 				<div class="mt-4">
-					<h2 class="text-xl mb-1">
-						{currentToro.name}
+					<h2 class="mb-1 text-xl">
+						{currentToro?.name}
 					</h2>
-					<div class="flex gap-1 justify-center">
-						{#each Array(currentToro.numberOfPomodoros) as _, i}
-							{#if i < currentToro.finishedPomodoros}
-								<div class="relative w-[15px] h-[15px]">
-									<Square class="bg-emerald-700 absolute top-0 left-0" />
-									<Check class="text-white absolute top-0 left-0" />
+					<div class="flex justify-center gap-1">
+						{#each Array(currentToro?.numberOfPomodoros) as _, i}
+							{#if i < currentToro?.finishedPomodoros}
+								<div class="relative h-[15px] w-[15px]">
+									<Square class="absolute left-0 top-0 bg-emerald-700" />
+									<Check class="absolute left-0 top-0 text-white" />
 								</div>
-							{:else if i == currentToro.finishedPomodoros}
+							{:else if i == currentToro?.finishedPomodoros}
 								<Square class="text-emerald-700" />
-								{#if (currentToro.finishedPomodoros + 1) % 4 === 0}
+								{#if (currentToro?.finishedPomodoros + 1) % 4 === 0}
 									<LapTimer class="text-orange-600" />
 								{:else}
 									<PieChart class="text-orange-300" />
@@ -169,28 +106,19 @@
 				</div>
 			{/if}
 		</Drawer.Trigger>
-		<Drawer.Content class="w-2/3 m-auto">
+		<Drawer.Content class="m-auto w-2/3">
 			<Drawer.Header>
 				<Drawer.Title>Toros</Drawer.Title>
 				<Drawer.Description>These are tasks that waits to be done :)</Drawer.Description>
 			</Drawer.Header>
 			<Drawer.Header class="text-left">
-				{#each toros as toro}
-					<div>
-						<input
-							type="checkbox"
-							name="toro-checkbox-{toro.id}"
-							id=""
-							on:change={(e) => {
-								updateToro(e, toro.id);
-							}}
-							bind:checked={toro.isFinished}
-						/>
-						<label class="text-base font-bold" for="toro-checkbox-{toro.id}">
+				<ul class="ml-4 list-decimal">
+					{#each toros as toro, id}
+						<li class="text-base font-bold">
 							{toro.isFinished}: {toro.name} [{toro.finishedPomodoros}/{toro.numberOfPomodoros}]
-						</label>
-					</div>
-				{/each}
+						</li>
+					{/each}
+				</ul>
 			</Drawer.Header>
 		</Drawer.Content>
 	</Drawer.Root>
