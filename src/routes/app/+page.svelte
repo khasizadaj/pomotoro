@@ -2,7 +2,8 @@
 	import { Check, LapTimer, PieChart, Square } from '$lib/icons/';
 	import { Button } from '$lib/components/ui/button';
 	import * as Drawer from '$lib/components/ui/drawer';
-	import { Database, RunDetails } from '$lib/db';
+	import { Database } from '$lib/db';
+	import { useSound } from 'svelte-sound';
 
 	export let data: any;
 
@@ -61,13 +62,20 @@
 		console.log(db.getRunDetails());
 		currentToro = db.getToroByCurrentTimer();
 	};
+
+	import click_mp4 from '$lib/assets/click.mp3';
+	const click_sound = useSound(click_mp4, ['click']);
 </script>
 
 <div class="relative flex h-screen w-screen flex-col items-center justify-center text-center">
 	<h1 class="mb-6 text-3xl font-semibold md:text-7xl">{prettifiedTime}</h1>
 	<div class="flex gap-4">
-		<Button on:click={startTimer}>Start</Button>
-		<Button on:click={pauseTimer} variant="secondary">Pause</Button>
+		<Button on:click={startTimer}>
+			<span class="h-full w-full" use:click_sound>Start</span>
+		</Button>
+		<Button on:click={pauseTimer} variant="secondary">
+			<span class="h-full w-full" use:click_sound>Pause</span>
+		</Button>
 	</div>
 	<Drawer.Root>
 		<Drawer.Trigger
