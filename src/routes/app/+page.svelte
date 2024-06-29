@@ -9,6 +9,7 @@
 	const db: Database = data.db;
 	let toros = db.getToros();
 	let currentToro = db.getToroByCurrentTimer();
+	$: currentToroDetails = db.getRunDetails();
 
 	const prettyTime = (time: number) => {
 		if (time < 0) {
@@ -24,7 +25,7 @@
 		: 'PO:MO:TO:RO';
 
 	const startTimer = () => {
-		let currentToroDetails = db.getRunDetails();
+		currentToroDetails = db.getRunDetails();
 		if (!currentToroDetails || currentToroDetails.intervalId !== null) {
 			return null;
 		}
@@ -41,7 +42,7 @@
 	};
 
 	const pauseTimer = () => {
-		let currentToroDetails = db.getRunDetails();
+		currentToroDetails = db.getRunDetails();
 		if (!currentToroDetails || currentToroDetails.intervalId == null) {
 			return null;
 		}
@@ -51,7 +52,7 @@
 	};
 
 	const resetTimer = () => {
-		let currentToroDetails = db.getRunDetails();
+		currentToroDetails = db.getRunDetails();
 		clearInterval(currentToroDetails?.intervalId);
 		currentToroDetails?.updateDetails(db);
 		db.setRunDetails(currentToroDetails);
@@ -84,7 +85,15 @@
 					<h2 class="mb-1 text-xl">
 						{currentToro?.name}
 					</h2>
+
 					<div class="flex justify-center gap-1">
+						<!--
+							1. It shows completed pomodoros.
+							2. If current step is pomodoro it shows what is the type of next break
+								(with it's respective color).
+							3. If current step is either short or long break, it shows break with green
+								color to indicate it's happening now.
+						-->
 						{#each Array(currentToro?.numberOfPomodoros) as _, i}
 							{#if i < currentToro?.finishedPomodoros}
 								<div class="relative h-[15px] w-[15px]">
@@ -92,11 +101,19 @@
 									<Check class="absolute left-0 top-0 text-white" />
 								</div>
 							{:else if i == currentToro?.finishedPomodoros}
-								<Square class="text-emerald-700" />
-								{#if (currentToro?.finishedPomodoros + 1) % 4 === 0}
-									<LapTimer class="text-orange-600" />
-								{:else}
-									<PieChart class="text-orange-300" />
+								{#if currentToroDetails?.type === 0}
+									<Square class="text-emerald-700" />
+									{#if (currentToro?.finishedPomodoros + 1) % 4 === 0}
+										<LapTimer class="text-orange-600" />
+									{:else}
+										<PieChart class="text-orange-300" />
+									{/if}
+								{:else if currentToroDetails?.type === 1}
+									<PieChart class="text-emerald-700" />
+									<Square />
+								{:else if currentToroDetails?.type === 2}
+									<LapTimer class="text-emerald-700" />
+									<Square />
 								{/if}
 							{:else}
 								<Square />
