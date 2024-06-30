@@ -102,9 +102,9 @@ class Database {
     private runDetails: RunDetails | null = null;
     private toros: Toro[] = [];
     private timers: Timer[] = [
-        new Timer(0, 'Pomodoro', 4),
-        new Timer(1, 'Short Break', 2),
-        new Timer(2, 'Long Break', 3)
+        new Timer(0, 'Pomodoro', 25 * 60),
+        new Timer(1, 'Short Break', 5 * 60),
+        new Timer(2, 'Long Break', 15 * 60)
     ];
 
     setRunDetails(currentTimer: RunDetails): void {
