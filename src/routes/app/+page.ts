@@ -8,7 +8,7 @@ export const load = async () => {
     const toro2 = new Toro(2, 'Study Session #2', 2, 1, false, false);
     db.addToro(toro2);
 
-    const runDetails = new RunDetails(toro1.id, null, 1, 10, 0);
+    const runDetails = new RunDetails(toro1.id, null, 1, 2, 0);
     db.setRunDetails(runDetails);
 
     return {

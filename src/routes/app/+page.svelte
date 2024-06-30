@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Drawer from '$lib/components/ui/drawer';
 	import { Database } from '$lib/db';
-	import { useSound } from 'svelte-sound';
+	import * as Howler from 'howler';
 
 	export let data: any;
 
@@ -26,6 +26,7 @@
 		: 'PO:MO:TO:RO';
 
 	const startTimer = () => {
+		playSound(buttonSoundInstance, 500);
 		currentToroDetails = db.getRunDetails();
 		if (!currentToroDetails || currentToroDetails.intervalId !== null) {
 			return null;
@@ -43,6 +44,7 @@
 	};
 
 	const pauseTimer = () => {
+		playSound(buttonSoundInstance, 500);
 		currentToroDetails = db.getRunDetails();
 		if (!currentToroDetails || currentToroDetails.intervalId == null) {
 			return null;
@@ -53,6 +55,7 @@
 	};
 
 	const resetTimer = () => {
+		playSound(endSoundInstance, 2000);
 		currentToroDetails = db.getRunDetails();
 		clearInterval(currentToroDetails?.intervalId);
 		currentToroDetails?.updateDetails(db);
@@ -63,19 +66,29 @@
 		currentToro = db.getToroByCurrentTimer();
 	};
 
-	import click_mp4 from '$lib/assets/click.mp3';
-	const click_sound = useSound(click_mp4, ['click']);
+	import clickSoundMusic from '$lib/assets/click.mp3';
+	import endSoundMusic from '$lib/assets/timer_end.mp3';
+
+	let endSoundInstance = new Howler.Howl({
+		src: [endSoundMusic]
+	});
+	let buttonSoundInstance = new Howler.Howl({
+		src: [clickSoundMusic]
+	});
+
+	const playSound = (instance: Howl, duration: number) => {
+		instance.play();
+		setTimeout(() => {
+			instance.stop();
+		}, duration);
+	};
 </script>
 
 <div class="relative flex h-screen w-screen flex-col items-center justify-center text-center">
 	<h1 class="mb-6 text-3xl font-semibold md:text-7xl">{prettifiedTime}</h1>
 	<div class="flex gap-4">
-		<Button on:click={startTimer}>
-			<span class="h-full w-full" use:click_sound>Start</span>
-		</Button>
-		<Button on:click={pauseTimer} variant="secondary">
-			<span class="h-full w-full" use:click_sound>Pause</span>
-		</Button>
+		<Button on:click={startTimer}>Start</Button>
+		<Button on:click={pauseTimer} variant="secondary">Pause</Button>
 	</div>
 	<Drawer.Root>
 		<Drawer.Trigger
