@@ -31,14 +31,21 @@
 		if (!currentToroDetails || currentToroDetails.intervalId !== null) {
 			return null;
 		}
-		let intervalId = setInterval(() => {
-			currentToroDetails.decrement();
-			if (currentToroDetails.isFinished()) {
+		let start = Date.now();
+		currentToroDetails.setStartTime(start);
+		const timer = () => {
+			let distance = currentToroDetails.remainingTime - (((Date.now() - start) / 1000) | 0);
+			if (distance <= 0) {
 				resetTimer();
 				return;
 			}
-			prettifiedTime = prettyTime(currentToroDetails.remainingTime);
-		}, 1000);
+			// currentToroDetails?.setRemainingTime(distance);
+			prettifiedTime = prettyTime(distance);
+			console.log("REMAINING: ", distance);
+		};
+		// we don't want to wait a full second before the timer starts
+		timer();	
+		let intervalId = setInterval(timer, 1000);
 		currentToroDetails.intervalId = intervalId;
 		db.setRunDetails(currentToroDetails);
 	};
@@ -50,6 +57,7 @@
 			return null;
 		}
 		clearInterval(currentToroDetails?.intervalId);
+		currentToroDetails.setRemainingTime(currentToroDetails.remainingTime - ((Date.now() - currentToroDetails.startTime) / 1000) | 0);
 		currentToroDetails.intervalId = null;
 		db.setRunDetails(currentToroDetails);
 	};
@@ -76,7 +84,7 @@
 		src: [clickSoundMusic]
 	});
 
-	const playSound = (instance: Howl, duration: number) => {
+	const playSound = async (instance: Howl, duration: number) => {
 		instance.play();
 		setTimeout(() => {
 			instance.stop();
