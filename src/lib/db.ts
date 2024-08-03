@@ -22,6 +22,7 @@ class RunDetails {
         public toroId: number,
         public intervalId: number | null = null,
         public type: number,
+        public startTime: number | null = null,
         public remainingTime: number,
         public next: number | null
     ) { }
@@ -36,6 +37,14 @@ class RunDetails {
 
     decrement(): void {
         this.remainingTime--;
+    }
+
+    setRemainingTime(time: number): void {
+        this.remainingTime = time;
+    }
+
+    setStartTime(time: number): void {
+        this.startTime = time;
     }
 
     updateDetails(db: Database): void {
